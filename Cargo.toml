@@ -1,0 +1,7 @@
+[package]
+name = "flachen"
+version = "0.1.0"
+authors = ["Tookertoin21 <nicruiz@pdx.edu>"]
+
+[dependencies]
+image = "0.20.0"
