@@ -29,10 +29,10 @@ Where the comment #FT is that the server uses to interpret the x,y, and z offest
 
 
 ## Instructions 
-	- One must clone and download the [flaschen taschen](https://github.com/hzeller/flaschen-taschen.git) project.
-	- Follow the [instructions](https://github.com/hzeller/flaschen-taschen/blob/master/server/README.md) to set up the server aspect of the project. If you do not have an led display follow the instructions to run in your terminal.
-	-Install the [OpenKinect/libfreenect](https://github.com/OpenKinect/libfreenect.git) dependencies on your computer. So that the wrappers for the rust crate work correctly on your computer. If working on a mac, you can brew install the dependencies.
-	- To Be continued
+* One must clone and download the [flaschen taschen](https://github.com/hzeller/flaschen-taschen.git) project.
+* Follow the [instructions](https://github.com/hzeller/flaschen-taschen/blob/master/server/README.md) to set up the server aspect of the project. If you do not have an led display follow the instructions to run in your terminal.
+* Install the [OpenKinect/libfreenect](https://github.com/OpenKinect/libfreenect.git) dependencies on your computer. So that the wrappers for the rust crate work correctly on your computer. If working on a mac, you can brew install the dependencies.
+* To Be continued
 
 ## Flaschen Tashen Display Pictures
 Front Display of Screen:
