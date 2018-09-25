@@ -7,10 +7,7 @@
 
 * Include functionality for Xbox Kinect as a data source.
 *Allow the rgb and depth sensor functionality in the application.
-
 *Allow user to adjust the the motor from the Xbox Kinect, to adjust the angle of the camera.
-
-
 ---
 
 # Flachen Taschen Rust client with Xbox Kinect functionality
