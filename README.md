@@ -22,7 +22,8 @@ As for the header that it referes:
 ```P6     # Magic number
 10 10  # width height (decimal, number in ASCII)
 #FT: 5 8 13
-255    # values per color (fixed). After newline, 10 * 10 * 3 bytes RGB data follow```
+255    # values per color (fixed). After newline, 10 * 10 * 3 bytes RGB data follow
+```
 
 Where the comment #FT is that the server uses to interpret the x,y, and z offest of the image for the display. 
 
@@ -33,17 +34,6 @@ Where the comment #FT is that the server uses to interpret the x,y, and z offest
 	-Install the [OpenKinect/libfreenect](https://github.com/OpenKinect/libfreenect.git) dependencies on your computer. So that the wrappers for the rust crate work correctly on your computer. If working on a mac, you can brew install the dependencies.
 	- To Be continued
 
-## Goals:
-* Create a Rust Udp client that can communitcate with the existing Flaschen Taschen Server.
-
-* Ability to take images, rescale, and format so that server can inpterpret.
-
-* Include functionality for Xbox Kinect as a data source.
-  *Allow the rgb and depth sensor functionality in the application.
-  *Allow user to adjust the the motor from the Xbox Kinect, to adjust the angle of the camera.
-
-
-  	- 
 ## Flaschen Tashen Display Pictures
 Front Display of Screen:
 ![alt text](images/front_display.jpg "front display")
