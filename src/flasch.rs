@@ -1,5 +1,6 @@
 use std::net::{SocketAddr, UdpSocket};
 
+
 #[derive(Debug)]
 pub struct flaschen <'a> {
 	fd: &'a str,
@@ -10,7 +11,7 @@ pub struct flaschen <'a> {
 
 impl <'a>flaschen<'a>{
 	pub fn new(host: &str, w: u64, h: u64) -> flaschen {
-		//create a list of address to bind the socket to 
+		//create a list of address to bind the socket to, to be able to send the data from. 
 		let addrs = [
 			SocketAddr::from(([127,0,0,1], 3400)),
 			SocketAddr::from(([127,0,0,1], 3401)),
