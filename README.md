@@ -41,4 +41,5 @@ Back Display of Screen:
 _Thanks to my housemate Dan Wright Who built the display and took photos of the display._
 
 ### Inspiration
-	- [flaschen taschen project](https://github.com/hzeller/flaschen-taschen.git)
+* [flaschen taschen project](https://github.com/hzeller/flaschen-taschen.git)
+* [libfreenectrs](https://github.com/Entscheider/freenect-rs.git)
