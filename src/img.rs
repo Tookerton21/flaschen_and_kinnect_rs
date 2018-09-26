@@ -4,6 +4,7 @@ extern crate image;
 
 use std::path::Path;
 
+//Default setting for Display width and size
 const SIZE: (u64, u64) = (25,35);
 
 #[derive(Debug, Clone)]
@@ -11,8 +12,6 @@ pub struct img {
 	header:  String,
 	rgb_data: Vec<u8>,
 }
-
-	//extern crate image;
 
 impl img{
 	//Creates a new PPM file, with the required header for the flaschen taschen project, 
