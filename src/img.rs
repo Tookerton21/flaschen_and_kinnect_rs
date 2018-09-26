@@ -35,13 +35,12 @@ impl img{
 	//Rgb data from the Dynamicimage. Save this Vec<u8> into the image structure. Returns
 	//true if the image was able to open and false is unable to open the image.
 	pub fn open_image(& mut self, img_file: &str) ->  bool {
-		let mut img = image::open(&Path::new(img_file));//.expect("Opening image failed");
+		let img = image::open(&Path::new(img_file));
 		
 		let res = match img {
 			Ok(i)	=>	{println!("its ok"); self.rgb_data = i.to_rgb().into_raw(); true},
 			Err(e)	=> 	{println!("Error: {:?}", e); false},
 		};
-		//self.rgb_data = img.to_rgb().into_raw();
 		res
 	}
 
@@ -56,8 +55,10 @@ impl img{
 #[cfg(test)]
 mod tests{
 	use super::*;
+
+	//Test that the header is being set correctly when passed valid parameters
+	//and that default values kick in if they are not for the header.
 	#[test]
-	//#[should_panic (expected = "File could not be opened!")]
 	pub fn test_image(){
 		let mut img = img::new(32, 32, 1);
 		let mut test = format!("P6\n{h} {w}\n#FT: {h} {w} {z}\n255", h=32, w=32, z=1);
@@ -67,18 +68,25 @@ mod tests{
 		test = format!("P6\n{h} {w}\n#FT: {h} {w} {z}\n255", h=25, w=35, z=1);
 
 		assert!(test.eq_ignore_ascii_case(img.header.as_str()));
-
-		//Test that the image truely does get opened
-		//assert!(img.open_image("/images/front_display.jpg"));
-		//img.open_image("doesnt_exit.jpg"); //This should panic
 	}
 
+	//Test that opening a valid image returns true, and that if one opens
+	//an invalid image the function returns false.
 	#[test]
 	pub fn test_image_open(){
 		let mut img = img::new(32, 32, 1);
-		//use std::path::Path;
-
-		//let path = Path::new("foo.txt");
 		assert_eq!(true, img.open_image("src/test_pic.jpg"));
+		assert_eq!(false, img.open_image("does_not_exist.jpg"));
 	}
+
+	//Ensure that the rgb data taken from img after opening an image is
+	//not empty and actually has some data in it.
+	#[test]
+	pub fn test_bin_data(){
+		let mut img = img::new(32, 32, 1);
+		img.open_image("src/test_pic.jpg");
+
+		assert_ne!(0, img.rgb_data.len());
+	}
+
 }
