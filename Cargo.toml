@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Tookertoin21 <nicruiz@pdx.edu>"]
 
 [dependencies]
+freenectrs = "0.1.0"
 image = "0.20.0"
+

@@ -1,38 +1,67 @@
-use std::net::UdpSocket;
+/*
+	Video Resolution:
+		Low:  QVGA  320x240
+		Med:  VGA   640x480
+		high: SXGA  1289x1024
+*/
+
+extern crate freenectrs;
+
+//use self::freenectrs::freenect::*;
+
 use std::env;
 
 mod flasch;
 mod img;
 
+
 use img::Img;
+
+const KINECT_NUM: u32 = 0;
 
 //use img::img;
 fn main() {
+	//set up freenect with motor+video
+	let context = freenectrs::freenect::FreenectContext::init_with_video().expect("Could not set up Kinect w/ motor context");
 
-//let path = env::current_dir().unwrap();
-		let h: u64 = 30;
-		let w: u64 = 30;
-		let z: u64 = 1; 
-		let img_path = "src/black-tick.jpg";
+	//Open kinect with given number
+	let device = match context.open_device(KINECT_NUM) {
+		Ok(x)	=>	x,
+		Err(e)	=>	panic!("Error: {:?}", e),
+	};
 
-		//create new flaschen taschen 
-		let fl = flasch::Flaschen::new("Localhost", h, w);
+	//Set the kinect mode
+	device.set_depth_mode(freenectrs::freenect::FreenectResolution::Medium, freenectrs::freenect::FreenectDepthFormat::MM).expect("Could not set depth mode!");
 
-		//Create a new img
-		let mut i = img::Img::new(h, w, z);
+	//get the depth stream
+	let depth_stream = match device.depth_stream() {
+		Ok(x)	=> x,
+		Err(e)	=> panic!("Error: {:?}", e),
+	};
 
-		//open the image
-		let res = i.open_image(img_path); 
-		assert!(res); //panic if false
+	//check what the current camera angle is at
+	let cur_angle = device.get_tilt_degree().expect("couldnt get camera angle.");
+	println!("Current angle: {:?}", cur_angle);
 
-		println!("flaschen: {:?}", fl);
-		println!("img: {:?}", i);
-		println!("bin img: {:?}", i.binary_img());
-		let ret = fl.send(i.binary_img());
-		//let tester: Vec<u8> = vec![1,2,3];
-		//let ret = fl.send(tester);
+	//depth camera to reset to 0 degrees
+	device.set_tilt_degree(2.0).expect("Error with setting camera angle");
+	
 
-		println!("ret: {:?}", ret);
+	//start the main thread to process libfreenect events
+	match context.spawn_process_thread() {
+		Ok(_)	=> println!("Main thread spawned"),
+		Err(e)	=> panic!("Error: {:?}", e),
+	};
+
+
+	loop{
+		//Fetch the depth frames
+		if let Ok((data,_)) = depth_stream.receiver.try_recv() {
+			println!("Inside fetch data frames");
+		}
+	}		
+	context.stop_process_thread();
+
 }
 
 #[cfg(test)]
