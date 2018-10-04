@@ -2,11 +2,12 @@
 
 extern crate image;
 
+use self::image::{ImageBuffer, GenericImage};
 use std::path::Path;
 
 //Default setting for Display width and size
 const SIZE: (u64, u64) = (25,35);
-
+const DISPLAY: (u32, u32) = (640, 480); //(wxh)
 #[derive(Debug, Clone)]
 pub struct Img {
 	height: u64,
@@ -33,6 +34,28 @@ impl Img{
 		}
 	}
 
+	//Takes a raw depth data array and turn the distance point into abn rgb dynamic image
+	//, resizes it and then copys the rgb data to the image struct. 
+	pub fn convert_data_img(&mut self, data: &[u16]){
+		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(self.width as u32, self.height as u32);
+		let mut pos = 0;
+
+		for x in 0..DISPLAY.0 {
+			for y in 0..DISPLAY.1 {
+				if pos > data.len(){
+					panic!("Outside of bounds!!");
+				}
+				let pix = (data[pos] % 255) as u8;
+				img.put_pixel(x,y, image::Rgba([pix, pix, pix, 255]));
+				pos += pos;
+			}
+		}
+
+		//resize the image to fit on the flaschen display
+		img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest);
+		self.rgb_data = img.to_rgb().into_raw();
+		println!("Data from depth has been copied to ppm data structP");
+	}
 
 	//Taken the address of the image and open it using the image crate. Get the raw
 	//Rgb data from the Dynamicimage after resizing it to fit the flaschen display.
@@ -62,6 +85,23 @@ impl Img{
 		h
 	}
 }
+
+/*
+//The kinect V1, which is the version that This application is using  contains 
+//rw depth values between 0-2048. For kinect v2 it has a range between 4500. Takes in 
+//raw data points and converts this to Rgb data.
+pub fn convert_to_rgb(data: &[u16]) -> Vec<u8>{
+
+	let mut rgb_data:Vec<u8> = Vec::new();
+	
+	//iterate through list take the mod of the depth data to ensure that it is an 
+	//rgb color and add this into a vector.
+	for elem in 0..data.len(){
+		rgb_data.push((data[elem] % 255) as u8);
+	}
+	rgb_data
+}
+*/
 
 /*	
 //
