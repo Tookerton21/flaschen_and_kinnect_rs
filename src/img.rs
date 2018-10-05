@@ -2,7 +2,7 @@
 
 extern crate image;
 
-use self::image::{ImageBuffer, GenericImage};
+use self::image::{GenericImage};
 use std::path::Path;
 
 //Default setting for Display width and size
@@ -37,9 +37,9 @@ impl Img{
 	//Takes a raw depth data array and turn the distance point into abn rgb dynamic image
 	//, resizes it and then copys the rgb data to the image struct. 
 	pub fn convert_data_img(&mut self, data: &[u16]){
-		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(self.width as u32, self.height as u32);
+		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
 		let mut pos = 0;
-
+		
 		for x in 0..DISPLAY.0 {
 			for y in 0..DISPLAY.1 {
 				if pos > data.len(){
@@ -47,14 +47,13 @@ impl Img{
 				}
 				let pix = (data[pos] % 255) as u8;
 				img.put_pixel(x,y, image::Rgba([pix, pix, pix, 255]));
-				pos += pos;
+				pos += 1;
 			}
 		}
 
 		//resize the image to fit on the flaschen display
-		img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest);
-		self.rgb_data = img.to_rgb().into_raw();
-		println!("Data from depth has been copied to ppm data structP");
+		self.rgb_data = img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest).to_rgb().into_raw();
+		
 	}
 
 	//Taken the address of the image and open it using the image crate. Get the raw
@@ -64,25 +63,24 @@ impl Img{
 	pub fn open_image(& mut self, img_file: &str) ->  bool {
 		let img = image::open(&Path::new(img_file));
 		let res = match img {
-			Ok(i)	=>	{	println!("its ok"); 
-							self.rgb_data = i.resize(self.width as u32, self.height as u32, image::FilterType::Nearest)
+			Ok(i)	=>	{ 	self.rgb_data = i.resize(self.width as u32, self.height as u32, image::FilterType::Nearest)
 										     .to_rgb()
 										     .into_raw();
 							true	
 						},
-			Err(_)	=> 	{	//println!("Error: {:?}", e); 
-							false
-						},
+			Err(_)	=> 	false,
 		};
 		res
 	}
 
 	//Return the raw PPM data into a since binary vec to be sent as a udp packet
 	pub fn binary_img(&self) -> Vec<u8> {
-		//let mut h = self.header.clone().into_bytes();
-		//h.append(&mut self.rgb_data.clone());
 		let h = self.rgb_data.clone();
 		h
+	}
+
+	pub fn clear_data(&mut self) {
+		self.rgb_data = Vec::new();
 	}
 }
 

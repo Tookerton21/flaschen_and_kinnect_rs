@@ -13,16 +13,23 @@ use std::env;
 use std::io;
 use std::thread;
 use std::time::Duration;
+use img::Img;
+
 mod flasch;
 mod img;
 
 
-use img::Img;
+
 
 const KINECT_NUM: u32 = 0;
-
+const ARG_NUM: u32 = 3; // w, h, z
 //use img::img;
 fn main() {
+	//colect the command line variables
+	let args: Vec<String> = env::args().collect();
+	let h_w_z = confirm(&args[..]).unwrap();
+
+
 	//set up freenect with motor+video
 	let context = freenectrs::freenect::FreenectContext::init_with_video().expect("Could not set up Kinect w/ motor context");
 
@@ -51,7 +58,7 @@ fn main() {
 
 	//start the main thread to process libfreenect events
 	match context.spawn_process_thread() {
-		Ok(_)	=> println!("Main thread spawned"),
+		Ok(_)	=> println!("Context thread spawned"),
 		Err(e)	=> panic!("Error: {:?}", e),
 	};
 
@@ -59,10 +66,10 @@ fn main() {
 	//For TESTING THE FLASCHEN DISPLAY
 
 	//Set up the flaschen taschen display
-	let fl = flasch::Flaschen::new("Localhost", 20, 20);
+	let fl = flasch::Flaschen::new("Localhost", h_w_z.0, h_w_z.1);
 
 	//create a new image
-	let mut i = img::Img::new(20, 20, 0);
+	let mut i = Img::new(h_w_z.0, h_w_z.1, h_w_z.2);
 
 	let mut end = false;
 	let mut input = String::new();
@@ -71,12 +78,17 @@ fn main() {
 	//read so that it doesnt waste as many clock cycles when there is nothing. Once there is a match to quite we 
 	//break the inf loop and let the thread exit.
 	thread::spawn(move || {
-		loop {
-			match io::stdin().read_line(&mut input) {
-				Ok(len)	=>	{ if len > 0 && input == 'q'.to_string() {end = true; break}},
-				Err(_)	=> { println!("Inside error for stdin() "); thread::sleep(Duration::from_millis(2))},
-			}
+		loop{
+			println!("inside thread");
+			end = match io::stdin().read_line(&mut input) {
+				Ok(len)	=>	{println!("len: {:?} input: {}", len, input); if len > 0 && input.trim() == 'q'.to_string() { println!("inside ok"); true} else {false} },
+				Err(_)	=> { println!("Inside error for stdin() "); thread::sleep(Duration::from_millis(2)); false},
+			};
 
+			if end == true{
+				println!("End is true and should break out of loop");
+				break;
+			}
 			thread::sleep(Duration::from_millis(2));
 		}
 	});
@@ -84,18 +96,35 @@ fn main() {
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
 	while end != true {
+		//println!("end: {:?}", end);
 		//Fetch the depth frames
 		if let Ok((data,_)) = depth_stream.receiver.try_recv() {
-			println!("Inside fetch data frames");
 			i.convert_data_img(data); //Take data from kinect
 			fl.send(i.binary_img());//send data to flaschen taschen display
-
+			i.clear_data();
 		}
 	}		
 
 	context.stop_process_thread().expect("Kinect process thread could not be closed");
 
 }
+
+// ADDITIONAL HELPER FUNCTIONS 
+
+//confirm command line arguments and return tuple(w,h)
+ pub fn confirm(args: &[String]) -> Option<(u64, u64, u64)> {
+ 	//check for min num or args
+ 	if args.len()-1 != ARG_NUM as usize {
+ 		panic!("Incorect number of Args, need: {:?} args", ARG_NUM);
+ 	}
+
+ 	let h: u64 = args[1].parse::<u64>().expect("Not valid number");
+ 	let w: u64 = args[2].parse::<u64>().expect("Not valid number");
+ 	let z: u64 = args[3].parse::<u64>().expect("Not valid number");
+
+ 	Some((h, w, z))
+
+ }
 
 #[cfg(test)]
 mod tests{
