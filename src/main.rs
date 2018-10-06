@@ -11,6 +11,7 @@ extern crate freenectrs;
 
 use std::env;
 use std::io;
+ use std::sync::{Arc, Mutex}; 
 use std::thread;
 use std::time::Duration;
 use img::Img;
@@ -23,6 +24,8 @@ mod img;
 
 const KINECT_NUM: u32 = 0;
 const ARG_NUM: u32 = 3; // w, h, z
+//static mut end: bool = false;
+
 //use img::img;
 fn main() {
 	//colect the command line variables
@@ -71,40 +74,47 @@ fn main() {
 	//create a new image
 	let mut i = Img::new(h_w_z.0, h_w_z.1, h_w_z.2);
 
-	let mut end = false;
-	let mut input = String::new();
+	let mut end = Arc::new(Mutex::new(false));
+	let thread_end = end.clone();
 
 	//create a new thread that will waits for the user input. Thread is put to sleep if there is no input to be 
 	//read so that it doesnt waste as many clock cycles when there is nothing. Once there is a match to quite we 
 	//break the inf loop and let the thread exit.
 	thread::spawn(move || {
+		
 		loop{
-			println!("inside thread");
-			end = match io::stdin().read_line(&mut input) {
-				Ok(len)	=>	{println!("len: {:?} input: {}", len, input); if len > 0 && input.trim() == 'q'.to_string() { println!("inside ok"); true} else {false} },
-				Err(_)	=> { println!("Inside error for stdin() "); thread::sleep(Duration::from_millis(2)); false},
+			let mut input = String::new();
+			let found_end = match io::stdin().read_line(&mut input) {
+				Ok(len)	=>	{if len > 0 && input.trim() == 'q'.to_string() { 
+				 			    true
+				 			 } 
+				 			 else {
+				 			 	false
+				 			 } 
+				 			},
+				Err(e)	=> panic!("{:?}", e),
 			};
+			
+			if found_end == true{
+				let mut end = thread_end.lock().unwrap();
+				*end = true;
 
-			if end == true{
-				println!("End is true and should break out of loop");
-				break;
+				return;
 			}
-			thread::sleep(Duration::from_millis(2));
+				thread::sleep(Duration::from_millis(2));
 		}
 	});
 
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
-	while end != true {
-		//println!("end: {:?}", end);
-		//Fetch the depth frames
+	
+		while !*end.lock().unwrap() {
 		if let Ok((data,_)) = depth_stream.receiver.try_recv() {
 			i.convert_data_img(data); //Take data from kinect
 			fl.send(i.binary_img());//send data to flaschen taschen display
 			i.clear_data();
 		}
-	}		
-
+	}	
 	context.stop_process_thread().expect("Kinect process thread could not be closed");
 
 }
