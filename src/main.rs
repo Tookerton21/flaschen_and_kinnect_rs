@@ -25,7 +25,7 @@ mod input_device_handler;
 
 
 const KINECT_NUM: u32 = 0;
-const ARG_NUM: u32 = 4; // w, h, z
+const ARG_NUM: u32 = 5; // w, h, z
 //static mut end: bool = false;
 
 //use img::img;
@@ -48,13 +48,25 @@ fn main() {
 		Err(e)	=>	panic!("Error: {:?}", e),
 	};
 
+
 	//Set the kinect mode
+	
 	device.set_depth_mode(freenectrs::freenect::FreenectResolution::Medium, freenectrs::freenect::FreenectDepthFormat::MM).expect("Could not set depth mode!");
+	let d_stream = device.depth_stream();
+
+	device.set_video_mode(freenectrs::freenect::FreenectResolution::Medium, freenectrs::freenect::FreenectVideoFormat::Rgb).expect("could not set Rgb mode");
+	let v_stream = device.video_stream();
+
 
 	//get the depth stream
-	let depth_stream = match device.depth_stream() {
+	let depth_stream = match d_stream {
 		Ok(x)	=> x,
 		Err(e)	=> panic!("Error: {:?}", e),
+	};
+
+	let video_stream = match v_stream {
+		Ok(x)	=> x,
+		Err(e)	=> panic!("{:?}", e),
 	};
 
 	//start the main thread to process libfreenect events
@@ -120,19 +132,33 @@ fn main() {
 
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
-	
+	let mut count = 0;
 		while !*end.lock().unwrap() {
 			match rx.try_recv() {
 				Ok(e)	=> dev_angle.key_event(e),
 				Err(_)	=> (),
 			}
+			if info.4 == "depth" {
+				if let Ok((data,_)) = depth_stream.receiver.try_recv() {
+					i.convert_data_img(data); //Take data from kinect
+				//fl.send(i.binary_img());//send data to flaschen taschen display
+				//i.clear_data();
+				}
+			} 
+			else {
 
-		if let Ok((data,_)) = depth_stream.receiver.try_recv() {
-			i.convert_data_img(data); //Take data from kinect
-			fl.send(i.binary_img());//send data to flaschen taschen display
+				if let Ok((data, _)) = video_stream.receiver.try_recv() {
+					if count < 4 {
+						println!("Inside video Rgb");
+						count = count+1;
+					}
+					i.get_img(data);
+				}
+			}
+			
+			fl.send(i.binary_img());
 			i.clear_data();
-		}
-	}	
+		}	
 
 	dev_angle.reset();
 	context.stop_process_thread().expect("Kinect process thread could not be closed");
@@ -143,7 +169,7 @@ fn main() {
 // ADDITIONAL HELPER FUNCTIONS 
 
 //confirm command line arguments and return tuple(w,h)
- pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64)> {
+ pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64, String)> {
  	//check for min num or args
  	if args.len()-1 != ARG_NUM as usize {
  		panic!("Incorect number of Args, need: {:?} args", ARG_NUM);
@@ -152,8 +178,15 @@ fn main() {
  	let h: u64 = args[2].parse::<u64>().expect("Not valid number");
  	let w: u64 = args[3].parse::<u64>().expect("Not valid number");
  	let z: u64 = args[4].parse::<u64>().expect("Not valid number");
+ 	let mut stream: String = args[5].parse::<String>().expect("Not valid stream");
 
- 	Some((host, h, w, z))
+ 	println!("stream: {:?}", stream);
+ 	//Check to ensure that there is a valid video type, otherwise default into depth mode
+ 	if stream.trim().to_lowercase() != "depth".trim().to_string() && stream.to_lowercase() != "rgb".to_string() {
+ 		stream = "depth".to_string();
+ 	}
+
+ 	Some((host, h, w, z, stream))
 
  }
 

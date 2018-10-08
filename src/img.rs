@@ -56,6 +56,24 @@ impl Img{
 		
 	}
 
+	pub fn get_img(&mut self, data: &[u8]) {
+		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
+		let mut pos = 0;
+		let inc = 3;
+
+		for x in 0..DISPLAY.0 {
+			for y in 0..DISPLAY.1 {
+				if pos > data.len() {
+					panic!("Outside of bounds!!");
+				}
+				img.put_pixel(x,y, image::Rgba([data[pos], data[pos+1], data[pos+2], 255]));
+				pos = pos+inc;
+			}
+		}
+
+		self.rgb_data = img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest).to_rgb().into_raw();
+
+	}
 	//Taken the address of the image and open it using the image crate. Get the raw
 	//Rgb data from the Dynamicimage after resizing it to fit the flaschen display.
 	//Save this Vec<u8> into the image structure. Returns true if the image was able 
