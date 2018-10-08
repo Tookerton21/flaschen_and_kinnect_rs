@@ -11,30 +11,36 @@ extern crate freenectrs;
 
 use std::env;
 use std::io;
- use std::sync::{Arc, Mutex}; 
+use std::sync::{Arc, Mutex}; 
 use std::thread;
 use std::time::Duration;
 use img::Img;
+use std::sync::mpsc;
+use input_device_handler::{ValidInp, DeviceHandler};
 
 mod flasch;
 mod img;
-
+mod input_device_handler;
 
 
 
 const KINECT_NUM: u32 = 0;
-const ARG_NUM: u32 = 3; // w, h, z
+const ARG_NUM: u32 = 4; // w, h, z
 //static mut end: bool = false;
 
 //use img::img;
 fn main() {
 	//colect the command line variables
 	let args: Vec<String> = env::args().collect();
-	let h_w_z = confirm(&args[..]).unwrap();
+	
+	//Check that we have valid args
+	let info = confirm(&args[..]).unwrap();
 
+	//set the host name
+	let host: &str = &*info.0;
 
 	//set up freenect with motor+video
-	let context = freenectrs::freenect::FreenectContext::init_with_video().expect("Could not set up Kinect w/ motor context");
+	let context = freenectrs::freenect::FreenectContext::init_with_video_motor().expect("Could not set up Kinect w/ motor context");
 
 	//Open kinect with given number
 	let device = match context.open_device(KINECT_NUM) {
@@ -51,43 +57,50 @@ fn main() {
 		Err(e)	=> panic!("Error: {:?}", e),
 	};
 
-	//check what the current camera angle is at
-	let cur_angle = device.get_tilt_degree().expect("couldnt get camera angle.");
-	println!("Current angle: {:?}", cur_angle);
-
-	//depth camera to reset to 0 degrees
-	device.set_tilt_degree(2.0).expect("Error with setting camera angle");
-	
-
 	//start the main thread to process libfreenect events
 	match context.spawn_process_thread() {
 		Ok(_)	=> println!("Context thread spawned"),
 		Err(e)	=> panic!("Error: {:?}", e),
 	};
 
-
-	//For TESTING THE FLASCHEN DISPLAY
-
 	//Set up the flaschen taschen display
-	let fl = flasch::Flaschen::new("Localhost", h_w_z.0, h_w_z.1);
+	let fl = flasch::Flaschen::new(host, info.1, info.2);
 
 	//create a new image
-	let mut i = Img::new(h_w_z.0, h_w_z.1, h_w_z.2);
+	let mut i = Img::new(info.1, info.2, info.3);
 
-	let mut end = Arc::new(Mutex::new(false));
+	let  end = Arc::new(Mutex::new(false));
 	let thread_end = end.clone();
+	let (tx, rx) = mpsc::channel();
+
+	let mut dev_angle = DeviceHandler{
+							dev: &device,
+							angle: 0 as f64,
+							inp: ValidInp::Invalid,
+						};
+
+	dev_angle.reset(); //Reset the camera to start at 0
 
 	//create a new thread that will waits for the user input. Thread is put to sleep if there is no input to be 
 	//read so that it doesnt waste as many clock cycles when there is nothing. Once there is a match to quite we 
 	//break the inf loop and let the thread exit.
 	thread::spawn(move || {
-		
 		loop{
 			let mut input = String::new();
 			let found_end = match io::stdin().read_line(&mut input) {
 				Ok(len)	=>	{if len > 0 && input.trim() == 'q'.to_string() { 
 				 			    true
 				 			 } 
+				 			 else if input.trim() == "w".to_string() {
+				 			 	println!("Moving angle up");
+				 			 	tx.send(ValidInp::Up).unwrap();
+				 			 	false
+				 			 }
+				 			 else if input.trim() == "s".to_string() {
+				 			 	println!("moving angle down");
+				 			 	tx.send(ValidInp::Down).unwrap();
+				 			 	false
+				 			 }
 				 			 else {
 				 			 	false
 				 			 } 
@@ -109,30 +122,38 @@ fn main() {
 	//and sends the data to the display.
 	
 		while !*end.lock().unwrap() {
+			match rx.try_recv() {
+				Ok(e)	=> dev_angle.key_event(e),
+				Err(_)	=> (),
+			}
+
 		if let Ok((data,_)) = depth_stream.receiver.try_recv() {
 			i.convert_data_img(data); //Take data from kinect
 			fl.send(i.binary_img());//send data to flaschen taschen display
 			i.clear_data();
 		}
 	}	
+
+	dev_angle.reset();
 	context.stop_process_thread().expect("Kinect process thread could not be closed");
+
 
 }
 
 // ADDITIONAL HELPER FUNCTIONS 
 
 //confirm command line arguments and return tuple(w,h)
- pub fn confirm(args: &[String]) -> Option<(u64, u64, u64)> {
+ pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64)> {
  	//check for min num or args
  	if args.len()-1 != ARG_NUM as usize {
  		panic!("Incorect number of Args, need: {:?} args", ARG_NUM);
  	}
+ 	let host: String = args[1].parse::<String>().expect("not valid host name");
+ 	let h: u64 = args[2].parse::<u64>().expect("Not valid number");
+ 	let w: u64 = args[3].parse::<u64>().expect("Not valid number");
+ 	let z: u64 = args[4].parse::<u64>().expect("Not valid number");
 
- 	let h: u64 = args[1].parse::<u64>().expect("Not valid number");
- 	let w: u64 = args[2].parse::<u64>().expect("Not valid number");
- 	let z: u64 = args[3].parse::<u64>().expect("Not valid number");
-
- 	Some((h, w, z))
+ 	Some((host, h, w, z))
 
  }
 
