@@ -139,9 +139,8 @@ fn main() {
 
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
-	let mut count = 0;
 	//create a new image
-	let mut i = Img::new(info.1, info.2, info.3);
+	let i = Img::new(info.1, info.2, info.3);
 
 		while !*end.lock().unwrap() {
 			let mut i = i.clone();
@@ -152,7 +151,13 @@ fn main() {
 			}
 			if info.4 == "depth" {
 				if let Ok((data,_)) = depth_stream.receiver.try_recv() {
-					i.convert_data_img(data); //Take data from kinect
+					i.convert_data_img(data);
+					let pic = i.clone().get_pic();
+
+					match pic {
+						Some(p) => window.draw(p),
+						None	=> (),
+					} //Take data from kinect
 				//fl.send(i.binary_img());//send data to flaschen taschen display
 				//i.clear_data();
 				}
@@ -160,11 +165,6 @@ fn main() {
 			else {
 
 				if let Ok((data, _)) = video_stream.receiver.try_recv() {
-
-					if count < 4 {
-						println!("Inside video Rgb");
-						count = count+1;
-					}
 					i.get_img(data);
 					let pic = i.clone().get_pic();
 					//Get the image and if its not None then send it to glium window

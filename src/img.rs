@@ -42,8 +42,8 @@ impl Img{
 		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
 		let mut pos = 0;
 		
-		for x in 0..DISPLAY.0 {
-			for y in 0..DISPLAY.1 {
+		for y in 0..DISPLAY.1 {
+			for x in 0..DISPLAY.0 {
 				if pos > data.len(){
 					panic!("Outside of bounds!!");
 				}
