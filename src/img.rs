@@ -2,18 +2,19 @@
 
 extern crate image;
 
-use self::image::{GenericImage};
+use self::image::{GenericImage, DynamicImage};
 use std::path::Path;
 
 //Default setting for Display width and size
 const SIZE: (u64, u64) = (25,35);
 const DISPLAY: (u32, u32) = (640, 480); //(wxh)
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Img {
 	height: u64,
 	width: u64,
 	header:  String,
 	rgb_data: Vec<u8>,
+	picture: Option<image::DynamicImage>,
 }
 
 impl Img{
@@ -31,6 +32,7 @@ impl Img{
 			width: width,
 			header : h,
 			rgb_data: Vec::new(),
+			picture: None,
 		}
 	}
 
@@ -51,9 +53,23 @@ impl Img{
 			}
 		}
 
+		//create an rgb image of the picture from the kinnect
+		self.picture = Some(img.clone());
+
 		//resize the image to fit on the flaschen display
 		self.rgb_data = img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest).to_rgb().into_raw();
 		
+	}
+
+	//returns the image from the kinect without it being scaled and should be coming in 
+	//at 640x480
+	pub fn get_pic(self) -> Option <image::RgbaImage> {
+		match self.picture	{
+			Some(result)	=>	Some(result.to_rgba()),
+			None			=>	None,
+		}
+
+		//self.picture.expect("can't get picture from kinect").to_rgba()
 	}
 
 	pub fn get_img(&mut self, data: &[u8]) {
@@ -61,8 +77,8 @@ impl Img{
 		let mut pos = 0;
 		let inc = 3;
 
-		for x in 0..DISPLAY.0 {
-			for y in 0..DISPLAY.1 {
+		for y in 0..DISPLAY.1 {
+			for x in 0..DISPLAY.0 {
 				if pos > data.len() {
 					panic!("Outside of bounds!!");
 				}
@@ -71,6 +87,7 @@ impl Img{
 			}
 		}
 
+		self.picture = Some(img.clone());
 		self.rgb_data = img.resize(self.width as u32, self.height as u32, image::FilterType::Nearest).to_rgb().into_raw();
 
 	}

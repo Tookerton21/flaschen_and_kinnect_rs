@@ -4,9 +4,10 @@
 		Med:  VGA   640x480
 		high: SXGA  1289x1024
 */
-
+#[macro_use]
+extern crate glium;
 extern crate freenectrs;
-
+extern crate image;
 //use self::freenectrs::freenect::*;
 
 use std::env;
@@ -17,16 +18,19 @@ use std::time::Duration;
 use img::Img;
 use std::sync::mpsc;
 use input_device_handler::{ValidInp, DeviceHandler};
+use window::*;
+use glium::Display;
 
 mod flasch;
 mod img;
 mod input_device_handler;
-
+mod window;
 
 
 const KINECT_NUM: u32 = 0;
 const ARG_NUM: u32 = 5; // w, h, z
-//static mut end: bool = false;
+const WIDTH: f64 = 640.0;
+const HEIGHT: f64 = 480.0;
 
 //use img::img;
 fn main() {
@@ -78,9 +82,7 @@ fn main() {
 	//Set up the flaschen taschen display
 	let fl = flasch::Flaschen::new(host, info.1, info.2);
 
-	//create a new image
-	let mut i = Img::new(info.1, info.2, info.3);
-
+	
 	let  end = Arc::new(Mutex::new(false));
 	let thread_end = end.clone();
 	let (tx, rx) = mpsc::channel();
@@ -92,6 +94,11 @@ fn main() {
 						};
 
 	dev_angle.reset(); //Reset the camera to start at 0
+
+	println!("Before windo building");
+	//Set up the Window for viewing in glium
+	let mut window = window::Window::new(WIDTH, HEIGHT);
+	println!("Window built");
 
 	//create a new thread that will waits for the user input. Thread is put to sleep if there is no input to be 
 	//read so that it doesnt waste as many clock cycles when there is nothing. Once there is a match to quite we 
@@ -133,7 +140,12 @@ fn main() {
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
 	let mut count = 0;
+	//create a new image
+	let mut i = Img::new(info.1, info.2, info.3);
+
 		while !*end.lock().unwrap() {
+			let mut i = i.clone();
+
 			match rx.try_recv() {
 				Ok(e)	=> dev_angle.key_event(e),
 				Err(_)	=> (),
@@ -148,11 +160,19 @@ fn main() {
 			else {
 
 				if let Ok((data, _)) = video_stream.receiver.try_recv() {
+
 					if count < 4 {
 						println!("Inside video Rgb");
 						count = count+1;
 					}
 					i.get_img(data);
+					let pic = i.clone().get_pic();
+					//Get the image and if its not None then send it to glium window
+					//to get drawn, otherwise do nothing.
+					match pic {
+						Some(p)	=> window.draw(p),
+						None	=> (),
+					};
 				}
 			}
 			
