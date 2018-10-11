@@ -18,19 +18,22 @@ use std::time::Duration;
 use img::Img;
 use std::sync::mpsc;
 use input_device_handler::{ValidInp, DeviceHandler};
-use window::*;
-use glium::Display;
+
+#[cfg(feature="window")]
+use window::Window;
+//use glium::Display;
 
 mod flasch;
 mod img;
 mod input_device_handler;
+
+#[cfg(feature="window")]
 mod window;
 
 
 const KINECT_NUM: u32 = 0;
-const ARG_NUM: u32 = 5; // w, h, z
-const WIDTH: f64 = 640.0;
-const HEIGHT: f64 = 480.0;
+const ARG_NUM: u32 = 4; // host, w, h, z
+
 
 //use img::img;
 fn main() {
@@ -55,19 +58,25 @@ fn main() {
 
 	//Set the kinect mode
 	
+	#[cfg(feature = "depth")]
 	device.set_depth_mode(freenectrs::freenect::FreenectResolution::Medium, freenectrs::freenect::FreenectDepthFormat::MM).expect("Could not set depth mode!");
+	#[cfg(feature = "depth")]
 	let d_stream = device.depth_stream();
 
+	#[cfg(feature = "rgb")]
 	device.set_video_mode(freenectrs::freenect::FreenectResolution::Medium, freenectrs::freenect::FreenectVideoFormat::Rgb).expect("could not set Rgb mode");
+	#[cfg(feature = "rgb")]
 	let v_stream = device.video_stream();
 
 
 	//get the depth stream
+	#[cfg(feature = "depth")]
 	let depth_stream = match d_stream {
 		Ok(x)	=> x,
 		Err(e)	=> panic!("Error: {:?}", e),
 	};
 
+	#[cfg(feature = "rgb")]
 	let video_stream = match v_stream {
 		Ok(x)	=> x,
 		Err(e)	=> panic!("{:?}", e),
@@ -95,10 +104,10 @@ fn main() {
 
 	dev_angle.reset(); //Reset the camera to start at 0
 
-	println!("Before windo building");
+	#[cfg(feature = "window")]
+	let mut window = Window::new(640, 480);
 	//Set up the Window for viewing in glium
-	let mut window = window::Window::new(WIDTH, HEIGHT);
-	println!("Window built");
+	
 
 	//create a new thread that will waits for the user input. Thread is put to sleep if there is no input to be 
 	//read so that it doesnt waste as many clock cycles when there is nothing. Once there is a match to quite we 
@@ -149,47 +158,60 @@ fn main() {
 				Ok(e)	=> dev_angle.key_event(e),
 				Err(_)	=> (),
 			}
-			if info.4 == "depth" {
+
+			//if info.4 == "depth" {
+			#[cfg(feature = "depth")]
+			{
 				if let Ok((data,_)) = depth_stream.receiver.try_recv() {
 					i.convert_data_img(data);
-					let pic = i.clone().get_pic();
-
-					match pic {
-						Some(p) => window.draw(p),
-						None	=> (),
-					} //Take data from kinect
-				//fl.send(i.binary_img());//send data to flaschen taschen display
-				//i.clear_data();
-				}
-			} 
-			else {
-
-				if let Ok((data, _)) = video_stream.receiver.try_recv() {
-					i.get_img(data);
-					let pic = i.clone().get_pic();
-					//Get the image and if its not None then send it to glium window
-					//to get drawn, otherwise do nothing.
-					match pic {
-						Some(p)	=> window.draw(p),
-						None	=> (),
-					};
+					
+					#[cfg(feature = "window")]
+					{
+						let pic = i.clone().get_pic();
+						match pic {
+							Some(p) => window.draw(p),
+							None	=> (),
+						} 
+					}
+					//Take data from kinect
+				fl.send(i.binary_img());//send data to flaschen taschen display
+				i.clear_data();
 				}
 			}
+			//} 
+			//else {
+			#[cfg(feature = "rgb")]
+			{
+				if let Ok((data, _)) = video_stream.receiver.try_recv() {
+					i.get_img(data);
+					
+					
+					#[cfg(feature = "window")]
+					{
+						let pic = i.clone().get_pic();
+						match pic {
+							Some(p)	=> window.draw(p),
+							None	=> (),
+						};
+					}
+				}
+				fl.send(i.binary_img());
+				i.clear_data();	
+			}
 			
-			fl.send(i.binary_img());
-			i.clear_data();
 		}	
-
-	dev_angle.reset();
-	context.stop_process_thread().expect("Kinect process thread could not be closed");
-
+	#[cfg(any(feature = "rgb", feature = "depth"))]
+	{
+		dev_angle.reset();
+		context.stop_process_thread().expect("Kinect process thread could not be closed");
+	}
 
 }
 
 // ADDITIONAL HELPER FUNCTIONS 
 
 //confirm command line arguments and return tuple(w,h)
- pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64, String)> {
+ pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64)> {
  	//check for min num or args
  	if args.len()-1 != ARG_NUM as usize {
  		panic!("Incorect number of Args, need: {:?} args", ARG_NUM);
@@ -198,15 +220,15 @@ fn main() {
  	let h: u64 = args[2].parse::<u64>().expect("Not valid number");
  	let w: u64 = args[3].parse::<u64>().expect("Not valid number");
  	let z: u64 = args[4].parse::<u64>().expect("Not valid number");
- 	let mut stream: String = args[5].parse::<String>().expect("Not valid stream");
+ 	//let mut stream: String = args[5].parse::<String>().expect("Not valid stream");
 
- 	println!("stream: {:?}", stream);
+ 	//println!("stream: {:?}", stream);
  	//Check to ensure that there is a valid video type, otherwise default into depth mode
- 	if stream.trim().to_lowercase() != "depth".trim().to_string() && stream.to_lowercase() != "rgb".to_string() {
- 		stream = "depth".to_string();
- 	}
+ 	//if stream.trim().to_lowercase() != "depth".trim().to_string() && stream.to_lowercase() != "rgb".to_string() {
+ 	//	stream = "depth".to_string();
+ 	//}
 
- 	Some((host, h, w, z, stream))
+ 	Some((host, h, w, z))
 
  }
 

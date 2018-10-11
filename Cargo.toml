@@ -3,6 +3,11 @@ name = "flachen"
 version = "0.1.0"
 authors = ["Tookertoin21 <nicruiz@pdx.edu>"]
 
+[features]
+window = [] #No extra dependancies
+rgb	= []
+depth = []
+
 [dependencies]
 freenectrs = "0.1.0"
 image = "0.20.0"

@@ -3,17 +3,11 @@
 
 use glium;
 use glium::glutin;
-use glium::Frame;
 use glium::index::PrimitiveType;
 use glium::texture::{RawImage2d, Texture2d};
-use image::DynamicImage;
 use image::RgbaImage; 
-//use glium::backend::Facade;
 use glium::Surface;
-//use glium::backend::glutin_backend::GlutinFacade;
 
-const WIDTH:u32 = 640;
-const HEIGHT:u32 = 480;
 
 #[derive(Copy, Clone)]
 struct Vertex {
@@ -45,14 +39,13 @@ impl  Window {
 			buff: b,
 			shader: Shader::new(&d),
 			display: d,
-			//context: context,
 		}
 	}
 
 	//Take the image 
 	pub fn image(&mut self, img: RgbaImage) -> Texture2d { 
 		//let dim = img.dimension();
-		let image = RawImage2d::from_raw_rgba_reversed(&img.into_raw(), (WIDTH, HEIGHT));
+		let image = RawImage2d::from_raw_rgba_reversed(&img.into_raw(), (640, 480));
 
 		//Get the texture of the timage
 		Texture2d::new(&self.display, image).expect("Could not texturize")
@@ -154,33 +147,23 @@ impl BufferInfo {
 	}
 }
 
-pub struct WindowInfo /*<'a>*/{
+pub struct WindowInfo {
 	pub events_loop: glutin::EventsLoop,
 	pub window: glutin::WindowBuilder,
 	//pub context: glutin::ContextBuilder<'a>,
 	//shader: glium::Program, 
 }
 
-impl /*<'a>*/ WindowInfo /*<'a>*/ {
-	pub fn new(width: f64, height: f64) -> WindowInfo /*<'a>*/ {
+impl WindowInfo {
+	pub fn new(width: f64, height: f64) -> WindowInfo  {
 		
 		 WindowInfo {
 					events_loop: glutin::EventsLoop::new(),
 					window: glutin::WindowBuilder::new()
 					  			     .with_dimensions(glutin::dpi::LogicalSize::new(width, height))
 					  				 .with_title("Kinect"),
-					//context: glutin::ContextBuilder::new(),
 		}
 	}
-	pub fn get_e(&self)-> &glutin::EventsLoop{
-		&self.events_loop
-	}
-
-	pub fn get_w(&self) -> &glutin::WindowBuilder {
-		&self.window
-	}
-
-
 }
 
 
