@@ -2,8 +2,12 @@
 
 extern crate image;
 
-use self::image::{GenericImage, DynamicImage};
+use self::image::{GenericImage};
+#[test]
 use std::path::Path;
+
+#[cfg(feature = "rgb")]
+use self::image::DynamicImage;
 
 //Default setting for Display width and size
 const SIZE: (u64, u64) = (25,35);
@@ -36,8 +40,30 @@ impl Img{
 		}
 	}
 
+	//Take the a depth point and assign it a color according to its distance from the camera.
+	//Return this point with the color assigned. For the kinect v1, the raw depth values range
+	//between 0 and 2048 
+	#[cfg(feature = "depth")]
+	pub fn get_color(dist: u16) -> image::Rgba<u8> {
+		//let range: u16 = 410;
+		//let range2: u16 = range * 2;
+		//let range3: u16 = range * 3;
+		//let range4: u16 = range * 4;
+
+		//let d = dist.clone();
+
+		match dist {
+			0...410	=>	image::Rgba([255, 0, 0, 255]),    //Red color
+			0...820  =>	image::Rgba([255, 255, 0,255 ]),  //Yellow color
+			0...1230  =>  image::Rgba([0, 255, 0, 255]),	  //Green Color
+			0...1640  =>  image::Rgba([0, 0, 255, 0]), //Blue Color
+			_			=>  image::Rgba([0,0,0, 255]),   //Black Color
+		}
+
+	} 
 	//Takes a raw depth data array and turn the distance point into abn rgb dynamic image
 	//, resizes it and then copys the rgb data to the image struct. 
+	#[cfg(feature = "depth")]
 	pub fn convert_data_img(&mut self, data: &[u16]){
 		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
 		let mut pos = 0;
@@ -47,8 +73,9 @@ impl Img{
 				if pos > data.len(){
 					panic!("Outside of bounds!!");
 				}
-				let pix = (data[pos] % 255) as u8;
-				img.put_pixel(x,y, image::Rgba([pix, pix, pix, 255]));
+				//let pix = (data[pos] % 255) as u8;
+				//img.put_pixel(x,y, image::Rgba([pix, pix, pix, 255]));
+				img.put_pixel(x,y, self::Img::get_color(data[pos]));
 				pos += 1;
 			}
 		}
@@ -63,6 +90,7 @@ impl Img{
 
 	//returns the image from the kinect without it being scaled and should be coming in 
 	//at 640x480
+	#[cfg(feature = "window")]
 	pub fn get_pic(self) -> Option <image::RgbaImage> {
 		match self.picture	{
 			Some(result)	=>	Some(result.to_rgba()),
@@ -72,8 +100,9 @@ impl Img{
 		//self.picture.expect("can't get picture from kinect").to_rgba()
 	}
 
+	#[cfg(feature = "rgb")]
 	pub fn get_img(&mut self, data: &[u8]) {
-		let mut img: image::DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
+		let mut img: DynamicImage = image::DynamicImage::new_rgb8(DISPLAY.0, DISPLAY.1);
 		let mut pos = 0;
 		let inc = 3;
 
@@ -95,6 +124,7 @@ impl Img{
 	//Rgb data from the Dynamicimage after resizing it to fit the flaschen display.
 	//Save this Vec<u8> into the image structure. Returns true if the image was able 
 	//to open and false is unable to open the image.
+	#[test]
 	pub fn open_image(& mut self, img_file: &str) ->  bool {
 		let img = image::open(&Path::new(img_file));
 		let res = match img {
@@ -119,22 +149,7 @@ impl Img{
 	}
 }
 
-/*
-//The kinect V1, which is the version that This application is using  contains 
-//rw depth values between 0-2048. For kinect v2 it has a range between 4500. Takes in 
-//raw data points and converts this to Rgb data.
-pub fn convert_to_rgb(data: &[u16]) -> Vec<u8>{
 
-	let mut rgb_data:Vec<u8> = Vec::new();
-	
-	//iterate through list take the mod of the depth data to ensure that it is an 
-	//rgb color and add this into a vector.
-	for elem in 0..data.len(){
-		rgb_data.push((data[elem] % 255) as u8);
-	}
-	rgb_data
-}
-*/
 
 /*	
 //

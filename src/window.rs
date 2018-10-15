@@ -10,7 +10,7 @@ use glium::Surface;
 
 
 #[derive(Copy, Clone)]
-struct Vertex {
+pub struct Vertex {
 	position: [f32; 2],
 	tex_coords: [f32; 2],
 }
@@ -18,7 +18,7 @@ struct Vertex {
 implement_vertex!(Vertex, position, tex_coords);
 
 pub struct Window {
-	window_info: WindowInfo,
+	//window_info: WindowInfo,
 	buff: BufferInfo,
 	shader: Shader,
 	display: glium::Display,
@@ -27,15 +27,16 @@ pub struct Window {
 
 impl  Window {
 	pub fn new(w: f64, h: f64) -> Window {
+		let win_info = WindowInfo::new(w,h);
+
 		let context = glutin::ContextBuilder::new();
 
-		let win_info = WindowInfo::new(w,h);
+		//let win_info = WindowInfo::new(w,h);
 		let d = glium::Display::new(win_info.window.clone(), context, &win_info.events_loop).unwrap();
 		let b = BufferInfo::new(&d);
-		//let s = Shader::new(&d);
 
 		Window {
-			window_info: win_info,
+			//window_info: win_info,
 			buff: b,
 			shader: Shader::new(&d),
 			display: d,
@@ -76,7 +77,6 @@ impl  Window {
 
 
 pub struct Shader {
-	//buffers: BufferInfo,
 	prog: glium::Program,
 
 }
@@ -133,7 +133,7 @@ impl BufferInfo {
 
 	pub fn new(display: &glium::Display) -> BufferInfo{
 		//use Vertex;
-		let data: [u16; 4] = [1, 2, 0, 3];
+		//let data: [u16; 4] = [1, 2, 0, 3];
 		let v = [Vertex{position: [-1.0, -1.0], tex_coords: [0.0, 0.0]},
 			 	 Vertex{position: [-1.0, 1.0],  tex_coords: [0.0, 1.0]},
 			 	 Vertex{position: [1.0, 1.0] ,  tex_coords: [1.0, 1.0]},
@@ -149,9 +149,7 @@ impl BufferInfo {
 
 pub struct WindowInfo {
 	pub events_loop: glutin::EventsLoop,
-	pub window: glutin::WindowBuilder,
-	//pub context: glutin::ContextBuilder<'a>,
-	//shader: glium::Program, 
+	pub window: glutin::WindowBuilder, 
 }
 
 impl WindowInfo {

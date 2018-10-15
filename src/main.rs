@@ -4,8 +4,10 @@
 		Med:  VGA   640x480
 		high: SXGA  1289x1024
 */
+#[cfg(feature = "window")]
 #[macro_use]
 extern crate glium;
+
 extern crate freenectrs;
 extern crate image;
 //use self::freenectrs::freenect::*;
@@ -89,6 +91,7 @@ fn main() {
 	};
 
 	//Set up the flaschen taschen display
+	#[cfg(any(feature = "rgb", feature = "depth"))]
 	let fl = flasch::Flaschen::new(host, info.1, info.2);
 
 	
@@ -105,7 +108,7 @@ fn main() {
 	dev_angle.reset(); //Reset the camera to start at 0
 
 	#[cfg(feature = "window")]
-	let mut window = Window::new(640, 480);
+	let mut window = Window::new(640.0, 480.0);
 	//Set up the Window for viewing in glium
 	
 
@@ -198,6 +201,11 @@ fn main() {
 				fl.send(i.binary_img());
 				i.clear_data();	
 			}
+
+			#[cfg(feature = "picture")]
+			{
+
+			}
 			
 		}	
 	#[cfg(any(feature = "rgb", feature = "depth"))]
@@ -220,17 +228,11 @@ fn main() {
  	let h: u64 = args[2].parse::<u64>().expect("Not valid number");
  	let w: u64 = args[3].parse::<u64>().expect("Not valid number");
  	let z: u64 = args[4].parse::<u64>().expect("Not valid number");
- 	//let mut stream: String = args[5].parse::<String>().expect("Not valid stream");
-
- 	//println!("stream: {:?}", stream);
- 	//Check to ensure that there is a valid video type, otherwise default into depth mode
- 	//if stream.trim().to_lowercase() != "depth".trim().to_string() && stream.to_lowercase() != "rgb".to_string() {
- 	//	stream = "depth".to_string();
- 	//}
 
  	Some((host, h, w, z))
 
  }
+
 
 #[cfg(test)]
 mod tests{
