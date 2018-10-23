@@ -8,36 +8,48 @@
 #[macro_use]
 extern crate glium;
 
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 extern crate freenectrs;
-extern crate image;
-//use self::freenectrs::freenect::*;
 
-use std::env;
+#[cfg(any(feature = "rgb", feature = "depth", test))]
+extern crate image;
+
 use std::io;
+#[cfg(any(feature = "rgb", feature = "depth"))]
+use std::env;
+#[cfg(any(feature = "rgb", feature = "depth"))]
 use std::sync::{Arc, Mutex}; 
+#[cfg(any(feature = "rgb", feature = "depth"))]
 use std::thread;
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 use std::time::Duration;
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 use img::Img;
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 use std::sync::mpsc;
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 use input_device_handler::{ValidInp, DeviceHandler};
 
 #[cfg(feature="window")]
 use window::Window;
-//use glium::Display;
 
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 mod flasch;
+
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 mod img;
+
+#[cfg(any(feature = "rgb", feature = "depth", test))]
 mod input_device_handler;
 
 #[cfg(feature="window")]
 mod window;
 
-
+#[cfg(any(feature = "rgb", feature = "depth"))]
 const KINECT_NUM: u32 = 0;
 const ARG_NUM: u32 = 4; // host, w, h, z
 
-
-//use img::img;
+#[cfg(any(feature = "rgb", feature = "depth"))]
 fn main() {
 	//colect the command line variables
 	let args: Vec<String> = env::args().collect();
@@ -152,7 +164,7 @@ fn main() {
 	//Loop that takes the depth data from the kinect, creates a usuable data for the flaschen T. 
 	//and sends the data to the display.
 	//create a new image
-	let i = Img::new(info.1, info.2, info.3);
+	let i = Img::new(info.2, info.1, info.3);
 
 		while !*end.lock().unwrap() {
 			let mut i = i.clone();
@@ -162,7 +174,6 @@ fn main() {
 				Err(_)	=> (),
 			}
 
-			//if info.4 == "depth" {
 			#[cfg(feature = "depth")]
 			{
 				if let Ok((data,_)) = depth_stream.receiver.try_recv() {
@@ -181,8 +192,7 @@ fn main() {
 				i.clear_data();
 				}
 			}
-			//} 
-			//else {
+			
 			#[cfg(feature = "rgb")]
 			{
 				if let Ok((data, _)) = video_stream.receiver.try_recv() {
@@ -201,12 +211,6 @@ fn main() {
 				fl.send(i.binary_img());
 				i.clear_data();	
 			}
-
-			#[cfg(feature = "picture")]
-			{
-
-			}
-			
 		}	
 	#[cfg(any(feature = "rgb", feature = "depth"))]
 	{
@@ -219,6 +223,7 @@ fn main() {
 // ADDITIONAL HELPER FUNCTIONS 
 
 //confirm command line arguments and return tuple(w,h)
+#[cfg(any(feature = "rgb", feature = "depth"))]
  pub fn confirm(args: &[String]) -> Option<(String, u64, u64, u64)> {
  	//check for min num or args
  	if args.len()-1 != ARG_NUM as usize {
@@ -233,6 +238,10 @@ fn main() {
 
  }
 
+#[cfg(not(any(feature = "rgb", feature = "depth")))]
+fn main(){
+	println!("Please Enter a feature of either rgb or depth for use");
+}
 
 #[cfg(test)]
 mod tests{
@@ -251,7 +260,7 @@ mod tests{
 		let img_path = "images/front_display.jpg";
 
 		//create new flaschen taschen 
-		let fl = flasch::Flaschen::new("Localhost", h, w);
+		let fl = flasch::Flaschen::new("localhost", h, w);
 
 		//Create a new img
 		let mut i = img::Img::new(h, w, z);

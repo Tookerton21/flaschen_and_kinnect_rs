@@ -3,8 +3,6 @@
 extern crate image;
 
 use self::image::{GenericImage};
-#[test]
-use std::path::Path;
 
 #[cfg(feature = "rgb")]
 use self::image::DynamicImage;
@@ -12,6 +10,10 @@ use self::image::DynamicImage;
 //Default setting for Display width and size
 const SIZE: (u64, u64) = (25,35);
 const DISPLAY: (u32, u32) = (640, 480); //(wxh)
+
+#[cfg(feature = "depth")]
+const MIN: u16 = 0; //CHANGE THIS IF YOU WANT TO SET A MIN DISTANCE YOU WANT TO CAPTURE ON DISPLAY FROM DEPTH SENSOR
+
 #[derive(Clone)]
 pub struct Img {
 	height: u64,
@@ -45,18 +47,12 @@ impl Img{
 	//between 0 and 2048 
 	#[cfg(feature = "depth")]
 	pub fn get_color(dist: u16) -> image::Rgba<u8> {
-		//let range: u16 = 410;
-		//let range2: u16 = range * 2;
-		//let range3: u16 = range * 3;
-		//let range4: u16 = range * 4;
-
-		//let d = dist.clone();
-
+		
 		match dist {
-			0...410	=>	image::Rgba([255, 0, 0, 255]),    //Red color
-			0...820  =>	image::Rgba([255, 255, 0,255 ]),  //Yellow color
-			0...1230  =>  image::Rgba([0, 255, 0, 255]),	  //Green Color
-			0...1640  =>  image::Rgba([0, 0, 255, 0]), //Blue Color
+			MIN...410	=>	image::Rgba([255, 0, 0, 255]),    //Red color
+			MIN...820  =>	image::Rgba([255, 255, 0,255 ]),  //Yellow color
+			MIN...1230  =>  image::Rgba([0, 255, 0, 255]),	  //Green Color
+			MIN...1640  =>  image::Rgba([0, 0, 255, 0]), //Blue Color
 			_			=>  image::Rgba([0,0,0, 255]),   //Black Color
 		}
 
@@ -73,8 +69,7 @@ impl Img{
 				if pos > data.len(){
 					panic!("Outside of bounds!!");
 				}
-				//let pix = (data[pos] % 255) as u8;
-				//img.put_pixel(x,y, image::Rgba([pix, pix, pix, 255]));
+				
 				img.put_pixel(x,y, self::Img::get_color(data[pos]));
 				pos += 1;
 			}
@@ -96,8 +91,6 @@ impl Img{
 			Some(result)	=>	Some(result.to_rgba()),
 			None			=>	None,
 		}
-
-		//self.picture.expect("can't get picture from kinect").to_rgba()
 	}
 
 	#[cfg(feature = "rgb")]
@@ -126,6 +119,7 @@ impl Img{
 	//to open and false is unable to open the image.
 	#[test]
 	pub fn open_image(& mut self, img_file: &str) ->  bool {
+		use std::path::Path;
 		let img = image::open(&Path::new(img_file));
 		let res = match img {
 			Ok(i)	=>	{ 	self.rgb_data = i.resize(self.width as u32, self.height as u32, image::FilterType::Nearest)
@@ -158,6 +152,7 @@ impl Img{
 
 #[cfg(test)]
 mod tests{
+	
 	use super::*;
 
 	//Test that the header is being set correctly when passed valid parameters
@@ -183,6 +178,7 @@ mod tests{
 
 		//assert_eq!(false, img.open_image("does_not_exist.jpg"));
 	}
+	
 
 	//Ensure that the rgb data taken from img after opening an image is
 	//not empty and actually has some data in it.

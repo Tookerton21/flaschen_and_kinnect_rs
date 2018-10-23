@@ -12,3 +12,5 @@ depth = []
 freenectrs = "0.1.0"
 image = "0.20.0"
 glium = "*"
+machine-ip = "0.2.1"
+my_internet_ip = "0.1.1"
