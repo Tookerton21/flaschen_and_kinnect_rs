@@ -24,12 +24,32 @@ As for the header that it referes:
 
 Where the comment #FT is that the server uses to interpret the x,y, and z offest of the image for the display. 
 
+## Must have equipment:
+* Xbox kinect V1
+
+## Optional 
+* Flaschen Taschen LED Display
 
 ## Instructions 
 * One must clone and download the [flaschen taschen](https://github.com/hzeller/flaschen-taschen.git) project.
 * Follow the [instructions](https://github.com/hzeller/flaschen-taschen/blob/master/server/README.md) to set up the server aspect of the project. If you do not have an led display follow the instructions to run in your terminal.
 * Install the [OpenKinect/libfreenect](https://github.com/OpenKinect/libfreenect.git) dependencies on your computer. So that the wrappers for the rust crate work correctly on your computer. If working on a mac, you can brew install the dependencies.
-* To Be continued
+* clone this repo and go into the main folder
+* Plug in your Kinect
+* Set your server name in ```etc/hosts``` if using anything other than localhost
+* Start the server from the flaschen taschen project on the other device or on the same computer. NOTE: Both devices must be connected on the same Wireless connection. [Server Directions](https://github.com/hzeller/flaschen-taschen/tree/master/server) and take note of the dimensions of the screen size.
+* In The flasch.rs file change the constant IP to your computers IP, or statically set your IP address to ```192.168.0.104```
+* Run the program from this project ```cargo run --features "<feature>" <host name> <width> <height <z index>``` if no feature is presented you will get a prompt to enter one in, and same for not enough arguements. 
+	Features available:
+		* rgb - Use the rgb camera on the kinect
+		* depth - Use the depth sensor on the kinect
+		* (rgb or depth) window	- display the data on your computer using an openGl window
+
+## Additional Functions
+* In the terminal window hit w(up), and s(down) followed by Enter to adjust the camera angle
+* To cleanly terminate the application hit q followed by Enter 
+
+
 
 ## Flaschen Tashen Display Pictures
 Front Display of Screen:

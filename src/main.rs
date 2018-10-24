@@ -14,6 +14,7 @@ extern crate freenectrs;
 #[cfg(any(feature = "rgb", feature = "depth", test))]
 extern crate image;
 
+#[cfg(any(feature = "rgb", feature = "depth"))]
 use std::io;
 #[cfg(any(feature = "rgb", feature = "depth"))]
 use std::env;
@@ -33,6 +34,7 @@ use input_device_handler::{ValidInp, DeviceHandler};
 #[cfg(feature="window")]
 use window::Window;
 
+//MOD USES
 #[cfg(any(feature = "rgb", feature = "depth", test))]
 mod flasch;
 
@@ -45,8 +47,11 @@ mod input_device_handler;
 #[cfg(feature="window")]
 mod window;
 
+//CONSTANTS
 #[cfg(any(feature = "rgb", feature = "depth"))]
 const KINECT_NUM: u32 = 0;
+
+#[cfg(any(feature = "rgb", feature = "depth"))]
 const ARG_NUM: u32 = 4; // host, w, h, z
 
 #[cfg(any(feature = "rgb", feature = "depth"))]
