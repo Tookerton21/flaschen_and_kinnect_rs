@@ -111,18 +111,14 @@ fn main() {
 	#[cfg(any(feature = "rgb", feature = "depth"))]
 	let fl = flasch::Flaschen::new(host, info.1, info.2);
 
-	
+	//Set up thread variables
 	let  end = Arc::new(Mutex::new(false));
 	let thread_end = end.clone();
 	let (tx, rx) = mpsc::channel();
 
-	let mut dev_angle = DeviceHandler{
-							dev: &device,
-							angle: 0 as f64,
-							inp: ValidInp::Invalid,
-						};
-
-	dev_angle.reset(); //Reset the camera to start at 0
+	//Set up device motor handler
+	let mut dev_angle = DeviceHandler::new(&device);
+	dev_angle.reset(); //Reset device to start at the 0.0 position
 
 	#[cfg(feature = "window")]
 	let mut window = Window::new(640.0, 480.0);

@@ -1,3 +1,7 @@
+//Handles the user input when it comes to moving the camera. If the user
+//chooses to move either up or down, and adjust the camera based from that
+//on the kinect.
+
 use freenectrs::freenect;
 
 
@@ -30,12 +34,20 @@ pub struct DeviceHandler <'a, 'b: 'a> {
 }
 
 impl <'a, 'b> DeviceHandler <'a, 'b> {
+	pub fn new(dev: &'a freenect::FreenectDevice<'a, 'b>) -> DeviceHandler<'a, 'b> {
+		DeviceHandler {
+			dev: &dev,
+			angle: 0.0,
+			inp: ValidInp::Invalid,
+		}
+	}
 	//Reset the angle of the kinect back to 0.0
 	pub fn reset(&mut self) {
 		self.angle = 0.0;
 		self.dev.set_tilt_degree(self.angle).expect("Could not reset the angle");
 	}
 
+	//Check the input from the user, and see if it is a valid key event
 	pub fn key_event(&mut self, input: ValidInp){
 		match input {
 			ValidInp::Up   => self.move_angle(UP),
@@ -44,9 +56,8 @@ impl <'a, 'b> DeviceHandler <'a, 'b> {
 		}
 	}
 
+	//Move the camera based on the users key input
 	fn move_angle(&mut self, add: f64) {
-		//let tilt_angle: f64 = self.angle + add;
-		//println!("Moving: {:?} degs", tilt_angle);
 
 		self.dev.set_tilt_degree(self.angle + add).expect("Error with setting camera angle");
 		self.angle = self.dev.get_tilt_degree().expect("could not get degree");

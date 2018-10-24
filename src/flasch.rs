@@ -3,7 +3,7 @@ use std::net::{SocketAddr, UdpSocket, ToSocketAddrs, Ipv4Addr};
 
 //Change this to the IP address of that of your machine on the networl
 //that you are working on. If dynamic change to static.
-const IP: [u8; 4]	= [192, 168, 0, 104];
+const IP: [u8; 4]	= [192, 168, 0, 107];
 
 #[derive(Debug)]
 pub struct Flaschen  {

@@ -44,7 +44,7 @@ This project takes frames from the rgb camera, resizes the frame, and packages i
 * Plug in your Kinect
 * Set your server name in ```etc/hosts``` if using anything other than localhost
 * Start the server from the flaschen taschen project on the other device or on the same computer. NOTE: Both devices must be connected on the same Wireless connection. [Server Directions](https://github.com/hzeller/flaschen-taschen/blob/master/server/README.md) and take note of the dimensions of the screen size.
-* In The ```flasch.rs``` file change the constant IP to your computers IP, or statically set your IP address to ```192.168.0.104```
+* In The ```flasch.rs``` file change the constant IP to your computers IP, or statically set your IP address to ```192.168.0.107```. It is best to statically set your IP address to what ever IP address you want and change it to in the ```flash.rs``` file.
 * Run the program from this project ```cargo run --features "<features>" <host name> <width> <height> <z-index>``` if no feature is presented you will get a prompt to enter one in, and same for not enough arguements. The width and height have to match that of the size on the server. Best to have this run on the a 0 z index so that its on the base. 
 
   **Features available:**
@@ -69,7 +69,7 @@ Back Display of Screen:
 _Thanks to my housemate Dan Wright Who built the display and took photos of the display._
 
 ### Inspiration / Sources
-* [flaschen taschen project](https://github.com/hzeller/flaschen-taschen.git) - Uses the server, and protocol documentation to create a client in rust. Used the documentation about the procols to create a client that would be able to communicate with its server. In a way that other clients could be used to layer other images and take advantage of the z-index.
+* [flaschen taschen project](https://github.com/hzeller/flaschen-taschen.git) - Uses the server, and protocol documentation to create a client in rust. Used the documentation about the procols to create a client that would be able to communicate with its server. In a way that other clients could be used to layer other images and take advantage of the z-index. Looked at the C++ API in particular the [UDP flaschen Taschen](https://github.com/hzeller/flaschen-taschen/blob/master/api/lib/udp-flaschen-taschen.cc) of the project, To see how I was going to implement a rust version.
 
 * [Freenectrs](https://docs.rs/freenectrs/0.1.0/freenectrs/) - Wrappers for OpenKinect API. The Example on the main page was looked at to gain an understandng of the flow of operation in what order to set up the components of the Kinect to retrieve data from in ```Main.rs```
 

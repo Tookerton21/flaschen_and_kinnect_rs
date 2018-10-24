@@ -2,8 +2,9 @@
 //extern crate glium;
 //Sets up the window for the feature that the user can use to create an OpenGL
 //window. This file was heavily influenced by the Glium book that is on gitHub
-//in particular chapture 6 to understand how to get/use a texture for an image.texture
-// https://github.com/glium/glium/blob/master/book/tuto-06-texture.md
+//in particular chapture 6 to understand how to get/use a texture for an image texture
+// https://github.com/glium/glium/blob/master/book/tuto-06-texture.md, and help from the example
+//that freenectrs has for the window to get this feature to work correctly. 
 
 use glium;
 use glium::glutin;
@@ -81,15 +82,15 @@ pub struct Shader {
 
 impl Shader {
 	pub fn new(display: &glium::Display) -> Shader{
+		//Set the fragment shader that we are going to use
 		let prog = glium::Program::from_source(display, r" 
 		#version 140
-
-		uniform mat4 matrix;
 
 		in vec2 position;
 		in vec2 tex_coords;
 		out vec2 v_tex_coords;
 
+		uniform mat4 matrix;
 
 		void main() {
    		v_tex_coords = tex_coords;
@@ -99,10 +100,10 @@ impl Shader {
 	", r"
 	#version 140
 	
-	uniform sampler2D tex;
     in vec2 v_tex_coords;
     out vec4 color;
 
+	uniform sampler2D tex;
 
     void main() {
     	color = texture(tex, v_tex_coords);
@@ -130,6 +131,7 @@ impl BufferInfo {
 	}
 
 	pub fn new(display: &glium::Display) -> BufferInfo{
+		//set texture coordinates for the full size of the window
 		let v = [Vertex{position: [-1.0, -1.0], tex_coords: [0.0, 0.0]},
 			 	 Vertex{position: [-1.0, 1.0],  tex_coords: [0.0, 1.0]},
 			 	 Vertex{position: [1.0, 1.0] ,  tex_coords: [1.0, 1.0]},
