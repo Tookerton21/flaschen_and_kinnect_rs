@@ -1,6 +1,5 @@
 use std::net::{SocketAddr, UdpSocket, ToSocketAddrs, Ipv4Addr};
-extern crate machine_ip;
-extern crate my_internet_ip;
+
 
 //Change this to the IP address of that of your machine on the networl
 //that you are working on. If dynamic change to static.
@@ -37,7 +36,7 @@ impl Flaschen{
 		];
 
 		let mut host_and_port: String = host.to_string();
-		host_and_port.push_str(":1337");
+		host_and_port.push_str(":1337"); //Server is on port 1337
 		let fd: String;
 
 		//If the host is localhost

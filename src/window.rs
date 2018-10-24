@@ -1,5 +1,9 @@
 //#[macro_use]
 //extern crate glium;
+//Sets up the window for the feature that the user can use to create an OpenGL
+//window. This file was heavily influenced by the Glium book that is on gitHub
+//in particular chapture 6 to understand how to get/use a texture for an image.texture
+// https://github.com/glium/glium/blob/master/book/tuto-06-texture.md
 
 use glium;
 use glium::glutin;
@@ -18,34 +22,28 @@ pub struct Vertex {
 implement_vertex!(Vertex, position, tex_coords);
 
 pub struct Window {
-	//window_info: WindowInfo,
 	buff: BufferInfo,
 	shader: Shader,
 	display: glium::Display,
-	//context: glutin::ContextBuilder<'a>,
 }
 
 impl  Window {
+	//Create a new window and the app
 	pub fn new(w: f64, h: f64) -> Window {
 		let win_info = WindowInfo::new(w,h);
-
 		let context = glutin::ContextBuilder::new();
-
-		//let win_info = WindowInfo::new(w,h);
 		let d = glium::Display::new(win_info.window.clone(), context, &win_info.events_loop).unwrap();
 		let b = BufferInfo::new(&d);
 
 		Window {
-			//window_info: win_info,
 			buff: b,
 			shader: Shader::new(&d),
 			display: d,
 		}
 	}
 
-	//Take the image 
+	//Take the image and texturize the image to be displayed. 
 	pub fn image(&mut self, img: RgbaImage) -> Texture2d { 
-		//let dim = img.dimension();
 		let image = RawImage2d::from_raw_rgba_reversed(&img.into_raw(), (640, 480));
 
 		//Get the texture of the timage
@@ -132,8 +130,6 @@ impl BufferInfo {
 	}
 
 	pub fn new(display: &glium::Display) -> BufferInfo{
-		//use Vertex;
-		//let data: [u16; 4] = [1, 2, 0, 3];
 		let v = [Vertex{position: [-1.0, -1.0], tex_coords: [0.0, 0.0]},
 			 	 Vertex{position: [-1.0, 1.0],  tex_coords: [0.0, 1.0]},
 			 	 Vertex{position: [1.0, 1.0] ,  tex_coords: [1.0, 1.0]},
@@ -163,5 +159,3 @@ impl WindowInfo {
 		}
 	}
 }
-
-
