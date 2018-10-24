@@ -71,6 +71,6 @@ _Thanks to my housemate Dan Wright Who built the display and took photos of the 
 ### Inspiration / Sources
 * [flaschen taschen project](https://github.com/hzeller/flaschen-taschen.git) - Uses the server, and protocol documentation to create a client in rust. Used the documentation about the procols to create a client that would be able to communicate with its server. In a way that other clients could be used to layer other images and take advantage of the z-index. Looked at the C++ API in particular the [UDP flaschen Taschen](https://github.com/hzeller/flaschen-taschen/blob/master/api/lib/udp-flaschen-taschen.cc) of the project, To see how I was going to implement a rust version.
 
-* [Freenectrs](https://docs.rs/freenectrs/0.1.0/freenectrs/) - Wrappers for OpenKinect API. The Example on the main page was looked at to gain an understandng of the flow of operation in what order to set up the components of the Kinect to retrieve data from in ```Main.rs```
+* [Freenectrs](https://docs.rs/freenectrs/0.1.0/freenectrs/) - Wrappers for OpenKinect API. The Example on the main page was looked at to gain an understandng of the flow of operation in what order to set up the components of the Kinect to retrieve data from in ```Main.rs```. As well as how to set up my OpenGl window in combination with the Glium book in my ```Window.rs``` file.
 
 * [Glium Book](https://github.com/glium/glium/tree/master/book) - Helped with creating the openGl window, primarily with ```window.rs``` file
